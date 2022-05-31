@@ -4,9 +4,12 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterators;
+import com.google.common.io.ByteStreams;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
@@ -28,9 +31,12 @@ public class BcfksVersionedSecretKeyCache implements VersionedSecretKeyCache {
 
     private final String keystorePassword;
 
-    public BcfksVersionedSecretKeyCache(Resource keystoreResource, String keystorePassword) {
+    private final Map<String, Resource> keyPasswords;
+
+    public BcfksVersionedSecretKeyCache(Resource keystoreResource, String keystorePassword, Map<String, Resource> keyPasswords) {
         this.keystoreResource = keystoreResource;
         this.keystorePassword = keystorePassword;
+        this.keyPasswords = keyPasswords;
 
         CacheLoader<String, VersionedSecretKey> loader = new CacheLoader<String, VersionedSecretKey>() {
             @Override
@@ -92,7 +98,12 @@ public class BcfksVersionedSecretKeyCache implements VersionedSecretKeyCache {
         if ( m.matches() ) {
             KeyStore keyStore = KeyStore.getInstance("BCFKS");
             keyStore.load(keystoreResource.getInputStream(), keystorePassword.toCharArray());
-            return new DefaultVersionedSecretKey((SecretKey) keyStore.getKey(alias, keystorePassword.toCharArray()), Integer.parseInt(m.group(2)));
+
+            String keyPassword = new String(
+                ByteStreams.toByteArray(keyPasswords.get(alias).getInputStream()),
+                StandardCharsets.UTF_8);
+
+            return new DefaultVersionedSecretKey((SecretKey) keyStore.getKey(alias, keyPassword.toCharArray()), Integer.parseInt(m.group(2)));
         } else {
             return null;
         }

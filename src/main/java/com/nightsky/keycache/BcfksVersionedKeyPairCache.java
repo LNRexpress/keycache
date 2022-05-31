@@ -4,6 +4,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterators;
+import com.google.common.io.ByteStreams;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -12,6 +14,7 @@ import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.time.Duration;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -32,9 +35,12 @@ public class BcfksVersionedKeyPairCache implements VersionedKeyPairCache {
 
     private final String keystorePassword;
 
-    public BcfksVersionedKeyPairCache(Resource keystoreResource, String keystorePassword) {
+    private final Map<String, Resource> keyPasswords;
+
+    public BcfksVersionedKeyPairCache(Resource keystoreResource, String keystorePassword, Map<String, Resource> keyPasswords) {
         this.keystoreResource = keystoreResource;
         this.keystorePassword = keystorePassword;
+        this.keyPasswords = keyPasswords;
 
         CacheLoader<String, VersionedKeyPair> loader = new CacheLoader<String, VersionedKeyPair>() {
             @Override
@@ -97,7 +103,11 @@ public class BcfksVersionedKeyPairCache implements VersionedKeyPairCache {
             KeyStore keyStore = KeyStore.getInstance("BCFKS");
             keyStore.load(keystoreResource.getInputStream(), keystorePassword.toCharArray());
 
-            Key key = keyStore.getKey(alias, keystorePassword.toCharArray());
+            String keyPassword = new String(
+                ByteStreams.toByteArray(keyPasswords.get(alias).getInputStream()),
+                StandardCharsets.UTF_8);
+
+            Key key = keyStore.getKey(alias, keyPassword.toCharArray());
 
             if ( key instanceof PrivateKey ) {
                 Certificate cert = keyStore.getCertificate(alias);
