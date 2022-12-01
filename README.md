@@ -36,6 +36,16 @@ mvn install
 
 ## Usage
 
+### Declare Dependency (Apache Maven)
+
+```
+<dependency>
+    <groupId>com.nightsky</groupId>
+    <artifactId>keycache</artifactId>
+    <version>1.2.1</version>
+</dependency>
+```
+
 ### Common Set-up
 
 ```
