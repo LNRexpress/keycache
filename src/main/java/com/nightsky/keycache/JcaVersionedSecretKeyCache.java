@@ -27,9 +27,11 @@ public class JcaVersionedSecretKeyCache implements VersionedSecretKeyCache {
 
     private static final String KEY_NAME_PATTERN = "([\\p{Alnum}_-]+)-v(\\d+)";
 
-    private final LoadingCache<String, VersionedSecretKey> cache;
-
     private final Logger log;
+
+    private LoadingCache<String, VersionedSecretKey> cache;
+
+    private Duration expireAfterWrite;
 
     private Resource keyStoreResource;
 
@@ -44,6 +46,12 @@ public class JcaVersionedSecretKeyCache implements VersionedSecretKeyCache {
     private String keyNamePattern;
 
     public JcaVersionedSecretKeyCache() {
+        log = LoggerFactory.getLogger(getClass());
+        keyNamePattern = KEY_NAME_PATTERN;
+        expireAfterWrite = Duration.ofMinutes(30L);
+    }
+
+    public void initialize() {
         CacheLoader<String, VersionedSecretKey> loader = new CacheLoader<String, VersionedSecretKey>() {
             @Override
             public VersionedSecretKey load(String id) throws Exception {
@@ -51,10 +59,7 @@ public class JcaVersionedSecretKeyCache implements VersionedSecretKeyCache {
             }
         };
 
-        cache = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofMinutes(30L)).build(loader);
-        log = LoggerFactory.getLogger(getClass());
-
-        keyNamePattern = KEY_NAME_PATTERN;
+        cache = CacheBuilder.newBuilder().expireAfterWrite(expireAfterWrite).build(loader);
     }
 
     public static JcaVersionedSecretKeyCacheBuilder builder() {
@@ -225,6 +230,20 @@ public class JcaVersionedSecretKeyCache implements VersionedSecretKeyCache {
      */
     public void setKeyNamePattern(String keyNamePattern) {
         this.keyNamePattern = keyNamePattern;
+    }
+
+    /**
+     * @return the expireAfterWrite
+     */
+    public Duration getExpireAfterWrite() {
+        return expireAfterWrite;
+    }
+
+    /**
+     * @param expireAfterWrite the expireAfterWrite to set
+     */
+    public void setExpireAfterWrite(Duration expireAfterWrite) {
+        this.expireAfterWrite = expireAfterWrite;
     }
 
 }

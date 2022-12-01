@@ -1,6 +1,7 @@
 package com.nightsky.keycache.builder;
 
 import com.nightsky.keycache.JcaVersionedKeyPairCache;
+import java.time.Duration;
 import java.util.Map;
 import org.springframework.core.io.Resource;
 
@@ -46,7 +47,13 @@ public class JcaVersionedKeyPairCacheBuilder {
         return this;
     }
 
+    public JcaVersionedKeyPairCacheBuilder withExpireAfterWriteDuration(Duration duration) {
+        target.setExpireAfterWrite(duration);
+        return this;
+    }
+
     public JcaVersionedKeyPairCache build() {
+        target.initialize();
         return target;
     }
 

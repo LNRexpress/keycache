@@ -9,6 +9,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.time.Duration;
 import java.util.Map;
 import org.apache.commons.lang3.RandomStringUtils;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -55,6 +56,7 @@ public class JcaVersionedSecretKeyCacheTest {
             .withKeyStorePasswordResource(new ByteArrayResource(keyStorePassword.getBytes(StandardCharsets.UTF_8)))
             .withKeyStoreResource(new ByteArrayResource(rawKeyStore))
             .withKeyStoreType(KeyStoreFactory.JCE_KEYSTORE_TYPE)
+            .withExpireAfterWriteDuration(Duration.ofMinutes(60L))
                 .build();
     }
 

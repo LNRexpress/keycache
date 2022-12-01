@@ -31,9 +31,11 @@ public class JcaVersionedKeyPairCache implements VersionedKeyPairCache {
 
     private static final String KEY_NAME_PATTERN = "([\\p{Alnum}_-]+)-v(\\d+)";
 
-    private final LoadingCache<String, VersionedKeyPair> cache;
-
     private final Logger log;
+
+    private LoadingCache<String, VersionedKeyPair> cache;
+
+    private Duration expireAfterWrite;
 
     private Resource keyStoreResource;
 
@@ -48,6 +50,12 @@ public class JcaVersionedKeyPairCache implements VersionedKeyPairCache {
     private String keyNamePattern;
 
     public JcaVersionedKeyPairCache() {
+        log = LoggerFactory.getLogger(getClass());
+        keyNamePattern = KEY_NAME_PATTERN;
+        expireAfterWrite = Duration.ofMinutes(30L);
+    }
+
+    public void initialize() {
         CacheLoader<String, VersionedKeyPair> loader = new CacheLoader<String, VersionedKeyPair>() {
             @Override
             public VersionedKeyPair load(String id) throws Exception {
@@ -55,10 +63,7 @@ public class JcaVersionedKeyPairCache implements VersionedKeyPairCache {
             }
         };
 
-        cache = CacheBuilder.newBuilder().expireAfterWrite(Duration.ofMinutes(30L)).build(loader);
-        log = LoggerFactory.getLogger(getClass());
-
-        keyNamePattern = KEY_NAME_PATTERN;
+        cache = CacheBuilder.newBuilder().expireAfterWrite(expireAfterWrite).build(loader);
     }
 
     public static JcaVersionedKeyPairCacheBuilder builder() {
@@ -236,6 +241,20 @@ public class JcaVersionedKeyPairCache implements VersionedKeyPairCache {
      */
     public void setKeyNamePattern(String keyNamePattern) {
         this.keyNamePattern = keyNamePattern;
+    }
+
+    /**
+     * @return the expireAfterWrite
+     */
+    public Duration getExpireAfterWrite() {
+        return expireAfterWrite;
+    }
+
+    /**
+     * @param expireAfterWrite the expireAfterWrite to set
+     */
+    public void setExpireAfterWrite(Duration expireAfterWrite) {
+        this.expireAfterWrite = expireAfterWrite;
     }
 
 }
