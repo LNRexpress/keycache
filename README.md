@@ -109,3 +109,53 @@ VersionedKeyPair keyPair = versionedKeyPairCache.getKeyPair("test_key");
 ```
 VersionedKeyPair keyPair = versionedKeyPairCache.getKeyPair("test_key", 1);
 ```
+
+## Deploying to Artifactory
+
+```
+mvn -Dmaven.wagon.http.ssl.insecure=true deploy:deploy-file \
+    -Dfile=target/keycache-1.2.1.jar -DpomFile=pom.xml \
+    -DrepositoryId=artifactory-kloudsigning \
+    -Durl=https://artifactory.kloudsigning.com/artifactory/libs-release-local
+```
+
+## Pushing to GitHub
+
+### Add Your SSH Key to Your GitHub Account
+
+Assuming you have generated a valid SSH key, you need to add your SSH key to your GitHub account. This can be done in your GitHub account settings under "SSH and GPG keys". Follow the instructions provided by GitHub to add your key.
+
+### From Windows, Using Git Bash
+
+#### Cache the GitHub Host Key
+
+This is done by opening PuTTY and attempting to SSH to `github.com`. Accept the host key when prompted. *This step is only necessary the first time you attempt to push code to GitHub.*
+
+#### Start the PuTTY SSH Agent
+
+Locate the `pageant` executable among your installed programs and run it. `pageant` is an SSH agent, which PuTTY uses to manage your SSH keys. You should see a small icon in the Windows system tray indicating that the agent is running.
+
+#### Add Your GitHub SSH Key to the PuTTY Agent
+
+Right-click on the `pageant` icon in the system tray and select "Add Key". Navigate to your `~/.ssh` directory, which contains your private key file (e.g. `id_rsa`), and add it. If prompted for a passphrase, enter it and press "OK".
+
+#### Configure Git to Use the PuTTY SSH Agent for Authentication
+
+From the Git Bash shell, run:
+
+```
+export GIT_SSH='/c/path/to/plink.exe'
+```
+
+#### Push Your Code to GitHub
+
+```
+git push -u github master
+git push -u github master --tags
+```
+
+#### Disable Usage of the PuTTY SSH Agent
+
+```
+unset GIT_SSH
+```
